@@ -28,6 +28,7 @@ public class PassportReader : NSObject {
     private var skipSecureElements = true
     private var skipCA = false
     private var skipPACE = false
+    private var skipDataGroupParsing = false
     private var useExtendedMode = false
 
     private var bacHandler : BACHandler?
@@ -63,12 +64,13 @@ public class PassportReader : NSObject {
         dataAmountToReadOverride = amount
     }
     
-    public func readPassport( mrzKey : String, tags : [DataGroupId] = [], skipSecureElements : Bool = true, skipCA : Bool = false, skipPACE : Bool = false, useExtendedMode : Bool = false, customDisplayMessage : ((NFCViewDisplayMessage) -> String?)? = nil) async throws -> NFCPassportModel {
+    public func readPassport( mrzKey : String, tags : [DataGroupId] = [], skipSecureElements : Bool = true, skipCA : Bool = false, skipPACE : Bool = false, skipDataGroupParsing: Bool = false, useExtendedMode : Bool = false, customDisplayMessage : ((NFCViewDisplayMessage) -> String?)? = nil) async throws -> NFCPassportModel {
         
         self.passport = NFCPassportModel()
         self.mrzKey = mrzKey
         self.skipCA = skipCA
         self.skipPACE = skipPACE
+        self.skipDataGroupParsing = skipDataGroupParsing
         self.useExtendedMode = useExtendedMode
         
         self.dataGroupsToRead.removeAll()
@@ -356,7 +358,7 @@ extension PassportReader {
         repeat {
             do {
                 let response = try await tagReader.readDataGroup(dataGroup:dgId)
-                let dg = try DataGroupParser().parseDG(data: response)
+                let dg = try DataGroupParser().parseDG(data: response, skipDataGroupParsing: skipDataGroupParsing)
                 return dg
             } catch let error as NFCPassportReaderError {
                 Logger.passportReader.error( "TagError reading tag - \(error)" )

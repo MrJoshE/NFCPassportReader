@@ -19,13 +19,12 @@ class DataGroupParser {
                                       DataGroup15.self, NotImplementedDG.self, SOD.self]
     
     
-    func parseDG( data : [UInt8] ) throws -> DataGroup {
+    func parseDG( data : [UInt8] , skipDataGroupParsing: Bool) throws -> DataGroup {
         
         let header = data[0..<4]
         
         let dg = try tagToDG(header[0])
-
-        return try dg.init(data)
+        return try dg.init(data, skipDataGroupParsing)
     }
     
     

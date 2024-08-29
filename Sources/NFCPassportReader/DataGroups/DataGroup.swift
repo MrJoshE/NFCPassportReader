@@ -18,7 +18,7 @@ public class DataGroup {
     
     var pos = 0
     
-    required init( _ data : [UInt8] ) throws {
+    required init( _ data : [UInt8], _ skipParsing: Bool = false ) throws {
         self.data = data
         
         // Skip the first byte which is the header byte
@@ -26,7 +26,7 @@ public class DataGroup {
         let _ = try getNextLength()
         self.body = [UInt8](data[pos...])
         
-        try parse(data)
+        if (!skipParsing){try parse(data)}
     }
     
     func parse( _ data:[UInt8] ) throws {
