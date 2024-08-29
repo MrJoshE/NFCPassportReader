@@ -10,7 +10,7 @@ import Foundation
 public class NotImplementedDG: DataGroup {
     override public var datagroupType: DataGroupId { .Unknown }
 
-    required init(_ data: [UInt8]) throws {
-        try super.init(data)
+    required init(_ data: [UInt8], _ skipParsing: Bool = false ) throws {
+        try super.init(data, skipParsing)
     }
 }

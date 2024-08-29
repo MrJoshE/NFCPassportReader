@@ -68,8 +68,8 @@ class SOD : DataGroup {
 
     override var datagroupType: DataGroupId { .SOD }
     
-    required init( _ data : [UInt8] ) throws {
-        try super.init(data)
+    required init( _ data : [UInt8], _ skipParsing: Bool = false ) throws {
+        try super.init(data, skipParsing)
         self.pkcs7CertificateData = body
     }
     

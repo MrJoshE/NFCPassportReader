@@ -24,8 +24,8 @@ public class DataGroup11 : DataGroup {
 
     public override var datagroupType: DataGroupId { .DG11 }
 
-    required init( _ data : [UInt8] ) throws {
-        try super.init(data)
+    required init( _ data : [UInt8], _ skipParsing: Bool = false ) throws {
+        try super.init(data, skipParsing)
     }
 
     override func parse(_ data: [UInt8]) throws {

@@ -201,7 +201,7 @@ public class NFCPassportModel {
                     AAChallenge = bin
                 } else {
                     do {
-                        let dg = try DataGroupParser().parseDG(data: bin)
+                        let dg = try DataGroupParser().parseDG(data: bin, skipDataGroupParsing: false)
                         let dgId = DataGroupId.getIDFromName(name:key)
                         self.addDataGroup( dgId, dataGroup:dg )
                     } catch {

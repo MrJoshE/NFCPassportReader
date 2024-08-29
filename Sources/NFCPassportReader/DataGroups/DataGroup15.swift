@@ -24,8 +24,8 @@ public class DataGroup15 : DataGroup {
         }
     }
     
-    required init( _ data : [UInt8] ) throws {
-        try super.init(data)
+    required init( _ data : [UInt8], _ skipParsing: Bool = false ) throws {
+        try super.init(data, skipParsing)
     }
     
     
