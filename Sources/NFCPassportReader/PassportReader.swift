@@ -28,6 +28,7 @@ public class PassportReader : NSObject {
     private var skipSecureElements = true
     private var skipCA = false
     private var skipPACE = false
+    private var skipActiveAuthenticationVerification = false
     private var useExtendedMode = false
 
     private var bacHandler : BACHandler?
@@ -63,7 +64,7 @@ public class PassportReader : NSObject {
         dataAmountToReadOverride = amount
     }
     
-    public func readPassport( mrzKey : String, tags : [DataGroupId] = [], skipSecureElements : Bool = true, skipCA : Bool = false, skipPACE : Bool = false, useExtendedMode : Bool = false, customDisplayMessage : ((NFCViewDisplayMessage) -> String?)? = nil) async throws -> NFCPassportModel {
+    public func readPassport( mrzKey : String, tags : [DataGroupId] = [], skipSecureElements : Bool = true, skipCA : Bool = false, skipPACE : Bool = false, useExtendedMode : Bool = false, skipActiveAuthenticationVerification: Bool = false, customDisplayMessage : ((NFCViewDisplayMessage) -> String?)? = nil) async throws -> NFCPassportModel {
         
         self.passport = NFCPassportModel()
         self.mrzKey = mrzKey
@@ -79,6 +80,7 @@ public class PassportReader : NSObject {
         self.bacHandler = nil
         self.caHandler = nil
         self.paceHandler = nil
+        self.skipActiveAuthenticationVerification = skipActiveAuthenticationVerification
         
         // If no tags specified, read all
         if self.dataGroupsToRead.count == 0 {
@@ -270,7 +272,13 @@ extension PassportReader {
         let challenge = generateRandomUInt8Array(8)
         Logger.passportReader.debug( "Generated Active Authentication challange - \(binToHexRep(challenge))")
         let response = try await tagReader.doInternalAuthentication(challenge: challenge, useExtendedMode: useExtendedMode)
-        self.passport.verifyActiveAuthentication( challenge:challenge, signature:response.data )
+        
+        if (self.skipActiveAuthenticationVerification) {
+            self.passport.activeAuthenticationChallenge = challenge
+            self.passport.activeAuthenticationSignature = response.data
+        }else {
+            self.passport.verifyActiveAuthentication( challenge:challenge, signature:response.data )
+        }
     }
     
 

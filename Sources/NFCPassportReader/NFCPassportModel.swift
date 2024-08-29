@@ -123,8 +123,8 @@ public class NFCPassportModel {
     public private(set) var documentSigningCertificateVerified : Bool = false
     public private(set) var passportDataNotTampered : Bool = false
     public private(set) var activeAuthenticationPassed : Bool = false
-    public private(set) var activeAuthenticationChallenge : [UInt8] = []
-    public private(set) var activeAuthenticationSignature : [UInt8] = []
+    public var activeAuthenticationChallenge : [UInt8] = []
+    public var activeAuthenticationSignature : [UInt8] = []
     public private(set) var verificationErrors : [Error] = []
 
     public var isPACESupported : Bool {
