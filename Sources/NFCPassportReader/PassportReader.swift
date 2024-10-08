@@ -248,13 +248,10 @@ extension PassportReader {
         // Now to read the datagroups
         try await readDataGroups(tagReader: tagReader)
 
-        let useExtendedModeOverride: Bool = {
-            if let dg15 = self.passport.getDataGroup(.DG15) {
-                return self.shouldUseExtendedMode(for: Data(dg15.body))
-            }
-            
-            return false
-        }()
+        var useExtendedModeOverride: Bool = false
+        if let dg15 = self.passport.getDataGroup(.DG15) {
+            useExtendedModeOverride = self.shouldUseExtendedMode(for: Data(dg15.body))
+        }
         
         try await doActiveAuthenticationIfNeccessary(tagReader : tagReader, useExtendedModeOverride: useExtendedModeOverride)
 
