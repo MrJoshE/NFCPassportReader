@@ -248,7 +248,15 @@ extension PassportReader {
         // Now to read the datagroups
         try await readDataGroups(tagReader: tagReader)
 
-        try await doActiveAuthenticationIfNeccessary(tagReader : tagReader)
+        let useExtendedModeOverride: Bool = {
+            if let dg15 = self.passport.getDataGroup(.DG15) {
+                return self.shouldUseExtendedMode(for: Data(dg15.body))
+            }
+            
+            return false
+        }()
+        
+        try await doActiveAuthenticationIfNeccessary(tagReader : tagReader, useExtendedModeOverride: useExtendedModeOverride)
 
         self.updateReaderSessionMessage(alertMessage: NFCViewDisplayMessage.successfulRead)
         self.shouldNotReportNextReaderSessionInvalidationErrorUserCanceled = true
@@ -259,9 +267,32 @@ extension PassportReader {
 
         return self.passport
     }
+  
+    public func shouldUseExtendedMode(for dg15: Data) -> Bool {
+        // Step 1 & 2: Determine key type (RSA or EC)
+        let ecKeyIdentifier = "2A8648CE3D0201"
+        let rsaKeyIdentifier = "2A864886F70D010101"
+        
+        let dg15HexString = dg15.toHexString()
+        
+        // Check hex string length (25 bytes * 2 characters per byte)
+        if dg15HexString.count < 50 {
+            return false
+        }
+        
+        if dg15HexString.contains(ecKeyIdentifier) {
+           return false // EC keys don't need extended mode
+        } else if dg15HexString.contains(rsaKeyIdentifier) {
+           // Step 3: Check DG15 length for RSA keys
+           return dg15HexString.count >= 560 // 280 bytes * 2 characters per byte
+        } else {
+           // Handle invalid key types if necessary
+           return false
+        }
+    }
+
     
-    
-    func doActiveAuthenticationIfNeccessary( tagReader : TagReader) async throws {
+    func doActiveAuthenticationIfNeccessary( tagReader : TagReader, useExtendedModeOverride: Bool) async throws {
         guard self.passport.activeAuthenticationSupported else {
             return
         }
@@ -271,7 +302,7 @@ extension PassportReader {
 
         let challenge = self.challenge ?? generateRandomUInt8Array(8)
         Logger.passportReader.debug( "Generated Active Authentication challange - \(binToHexRep(challenge))")
-        let response = try await tagReader.doInternalAuthentication(challenge: challenge, useExtendedMode: useExtendedMode)
+        let response = try await tagReader.doInternalAuthentication(challenge: challenge, useExtendedMode: useExtendedModeOverride || useExtendedMode)
         self.passport.verifyActiveAuthentication( challenge:challenge, signature:response.data )
     }
     
@@ -415,3 +446,9 @@ extension PassportReader {
     }
 }
 #endif
+
+extension Data {
+    func toHexString() -> String {
+        return self.map { String(format: "%02hhX", $0) }.joined()
+    }
+}
